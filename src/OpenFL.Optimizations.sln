@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1062
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenFL.Optimizations", "OpenFL.Optimizations\OpenFL.Optimizations.csproj", "{C9FBF63C-A1EA-4F5F-8599-C9FB1F0FAFE6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PluginSystem", "..\deps\OpenFL\deps\PluginSystem\src\PluginSystem\PluginSystem.csproj", "{7780EEB9-4B04-451A-8EA9-69BBE76BD49F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utility", "..\deps\OpenFL\deps\OpenCL.Wrapper\deps\Utility\src\Utility\Utility.csproj", "{A754F481-1F96-4BE6-9930-09440E03F773}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenCL", "..\deps\OpenFL\deps\OpenCL.Wrapper\deps\OpenCL\src\OpenCL\OpenCL.csproj", "{8CBE2629-B68A-417D-9B91-C6F9BC1B4DD3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenCL.Wrapper", "..\deps\OpenFL\deps\OpenCL.Wrapper\src\OpenCL.Wrapper\OpenCL.Wrapper.csproj", "{80EBC33B-A816-41F4-BB81-F983BBB13F67}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FL", "FL", "{145800B6-A989-47BC-B96A-54E4185C9338}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CL", "CL", "{2D0ADCFB-AC95-4EF4-BFE7-4850CBD7783A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenFL", "..\deps\OpenFL\src\OpenFL\OpenFL.csproj", "{B2409E7D-FBCB-48E0-A99B-22F570D5DFD4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C9FBF63C-A1EA-4F5F-8599-C9FB1F0FAFE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9FBF63C-A1EA-4F5F-8599-C9FB1F0FAFE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9FBF63C-A1EA-4F5F-8599-C9FB1F0FAFE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9FBF63C-A1EA-4F5F-8599-C9FB1F0FAFE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7780EEB9-4B04-451A-8EA9-69BBE76BD49F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7780EEB9-4B04-451A-8EA9-69BBE76BD49F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7780EEB9-4B04-451A-8EA9-69BBE76BD49F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7780EEB9-4B04-451A-8EA9-69BBE76BD49F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A754F481-1F96-4BE6-9930-09440E03F773}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A754F481-1F96-4BE6-9930-09440E03F773}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A754F481-1F96-4BE6-9930-09440E03F773}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A754F481-1F96-4BE6-9930-09440E03F773}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CBE2629-B68A-417D-9B91-C6F9BC1B4DD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CBE2629-B68A-417D-9B91-C6F9BC1B4DD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CBE2629-B68A-417D-9B91-C6F9BC1B4DD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CBE2629-B68A-417D-9B91-C6F9BC1B4DD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80EBC33B-A816-41F4-BB81-F983BBB13F67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80EBC33B-A816-41F4-BB81-F983BBB13F67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80EBC33B-A816-41F4-BB81-F983BBB13F67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80EBC33B-A816-41F4-BB81-F983BBB13F67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2409E7D-FBCB-48E0-A99B-22F570D5DFD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2409E7D-FBCB-48E0-A99B-22F570D5DFD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2409E7D-FBCB-48E0-A99B-22F570D5DFD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2409E7D-FBCB-48E0-A99B-22F570D5DFD4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8CBE2629-B68A-417D-9B91-C6F9BC1B4DD3} = {2D0ADCFB-AC95-4EF4-BFE7-4850CBD7783A}
+		{80EBC33B-A816-41F4-BB81-F983BBB13F67} = {2D0ADCFB-AC95-4EF4-BFE7-4850CBD7783A}
+		{2D0ADCFB-AC95-4EF4-BFE7-4850CBD7783A} = {145800B6-A989-47BC-B96A-54E4185C9338}
+		{B2409E7D-FBCB-48E0-A99B-22F570D5DFD4} = {145800B6-A989-47BC-B96A-54E4185C9338}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D535D64-18DE-41AD-BC35-078E67BC38D0}
+	EndGlobalSection
+EndGlobal
