@@ -1,3 +1,4 @@
 name: open-fl-optimizations
 target: .\src\OpenFL.Optimizations\bin\Debug\netstandard2.0\OpenFL.Optimizations.dll
-#output: .\build\open-fl-optimizations.zip
+output: .\docs\latest\open-fl-optimizations.zip
+flags: INFO_TO_OUTPUT
