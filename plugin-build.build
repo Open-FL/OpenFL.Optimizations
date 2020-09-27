@@ -1,4 +1,5 @@
 name: open-fl-optimizations
 target: .\src\OpenFL.Optimizations\bin\Debug\netstandard2.0\OpenFL.Optimizations.dll
 output: .\docs\latest\open-fl-optimizations.zip
+origin: https://open-fl.github.io/OpenFL.Optimizations/latest/info.txt
 flags: INFO_TO_OUTPUT
