@@ -13,8 +13,6 @@ namespace OpenFL.Optimizations
     public class OpenFLOptimizationPlugin : APlugin<FLProgramCheckBuilder>
     {
 
-        public override string Name => "open-fl-optimizations";
-
         public override void OnLoad(PluginAssemblyPointer ptr)
         {
             base.OnLoad(ptr);
