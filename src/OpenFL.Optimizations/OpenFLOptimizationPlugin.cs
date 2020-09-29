@@ -28,7 +28,7 @@ namespace OpenFL.Optimizations
                                                 y != typeof(FLProgramCheck)
                                           )
                                     .Select(
-                                            y => (FLProgramCheck)Activator
+                                            y => (FLProgramCheck) Activator
                                                 .CreateInstance(y)
                                            )
                                     .Where(y => (y.CheckType & PluginHost.StartProfile) != 0)
