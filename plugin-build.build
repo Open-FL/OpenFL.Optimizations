@@ -1,5 +1,12 @@
 name: open-fl-optimizations
-target: .\src\OpenFL.Optimizations\bin\Debug\netstandard2.0\OpenFL.Optimizations.dll
-output: .\docs\latest\open-fl-optimizations.zip
-origin: https://open-fl.github.io/OpenFL.Optimizations/latest/info.txt
+branch: Debug
+project-name: OpenFL.Optimizations
 flags: INFO_TO_OUTPUT
+
+#Build Info
+target: %buildout%\%project-name%.dll
+output: .\docs\latest\%name%.zip
+origin: https://open-fl.github.io/%project-name%/latest/info.txt
+solution: .\src\%project-name%.sln
+buildout: .\src\%project-name%\bin\%branch%\netstandard2.0
+buildcmd: dotnet build {0} -c %branch%
