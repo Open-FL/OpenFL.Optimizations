@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using OpenFL.Core;
 using OpenFL.Core.Arguments;
 using OpenFL.Core.DataObjects.SerializableDataObjects;
 using OpenFL.Core.ProgramChecks;
@@ -20,7 +21,7 @@ namespace OpenFL.Optimizations.Checks
         {
             SerializableFLProgram input = (SerializableFLProgram)o;
 
-            input.ToString();
+            //input.ToString();
 
             List<SerializableFLFunction> optimizableFunctions = new List<SerializableFLFunction>();
 
@@ -77,6 +78,7 @@ namespace OpenFL.Optimizations.Checks
                                                                        > { new SerializeDecimalArgument(0) }
                                                                       )
                                         );
+                func.Modifiers.AddModifier(FLKeywords.OptimizeBufferCreationKeyword);
             }
 
             return input;
