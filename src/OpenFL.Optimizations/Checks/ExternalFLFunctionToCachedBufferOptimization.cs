@@ -41,18 +41,18 @@ namespace OpenFL.Optimizations.Checks
                                                                               serializableExternalFlFunction
                                                                                   .ExternalProgram
                                                                                   .Initialize(
-                                                                                              root.Instance,
-                                                                                              InstructionSet
-                                                                                             );
+                                                                                       root.Instance,
+                                                                                       InstructionSet
+                                                                                      );
                                                                           FLBuffer b = new FLBuffer(
-                                                                                                    root.Instance,
-                                                                                                    root.Dimensions.x,
-                                                                                                    root.Dimensions.y,
-                                                                                                    root.Dimensions.z,
-                                                                                                    "CachedBuffer" +
-                                                                                                    serializableExternalFlFunction
-                                                                                                        .Name
-                                                                                                   );
+                                                                               root.Instance,
+                                                                               root.Dimensions.x,
+                                                                               root.Dimensions.y,
+                                                                               root.Dimensions.z,
+                                                                               "CachedBuffer" +
+                                                                               serializableExternalFlFunction
+                                                                                   .Name
+                                                                              );
                                                                           prog.Run(b, true);
 
                                                                           b = prog.GetActiveBuffer(true);
@@ -67,13 +67,13 @@ namespace OpenFL.Optimizations.Checks
                                              new SerializableScriptBuffer(
                                                                           newName,
                                                                           new FLBufferModifiers(
-                                                                                                newName,
-                                                                                                new[]
-                                                                                                {
-                                                                                                    FLKeywords
-                                                                                                        .ReadOnlyBufferModifier
-                                                                                                }
-                                                                                               ),
+                                                                               newName,
+                                                                               new[]
+                                                                               {
+                                                                                   FLKeywords
+                                                                                       .ReadOnlyBufferModifier
+                                                                               }
+                                                                              ),
                                                                           buf
                                                                          )
                                             );
