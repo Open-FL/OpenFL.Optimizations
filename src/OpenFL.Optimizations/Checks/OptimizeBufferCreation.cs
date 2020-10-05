@@ -19,9 +19,10 @@ namespace OpenFL.Optimizations.Checks
 
         public override object Process(object o)
         {
+            if (!InstructionSet.HasInstruction("Set_v")) return o;
+
             SerializableFLProgram input = (SerializableFLProgram)o;
 
-            //input.ToString();
 
             List<SerializableFLFunction> optimizableFunctions = new List<SerializableFLFunction>();
 
