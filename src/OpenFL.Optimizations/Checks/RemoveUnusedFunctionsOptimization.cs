@@ -40,7 +40,7 @@ namespace OpenFL.Optimizations.Checks
 
         public override object Process(object o)
         {
-            SerializableFLProgram input = (SerializableFLProgram) o;
+            SerializableFLProgram input = (SerializableFLProgram)o;
             bool stop = false;
             int pass = 1;
             int removed = 0;
