@@ -18,6 +18,7 @@ namespace OpenFL.Optimizations.Checks
 {
     public class KernelMergeOptimization : FLProgramCheck<SerializableFLProgram>
     {
+        public override int Priority => 6;
 
         private class ProgramComparer : EqualityComparer<CLProgram>
         {
