@@ -49,7 +49,7 @@ namespace OpenFL.Optimizations.Checks
 
             foreach (CLProgram clProgram in unique)
             {
-                source += $"#includeinl {clProgram.FilePath}\n";
+                source += $"#include {clProgram.FilePath}\n";
             }
 
             source += src;
@@ -91,10 +91,10 @@ namespace OpenFL.Optimizations.Checks
 
         private (string, string, CLProgram[]) GenerateTargets(SerializableFLInstruction[] targets)
         {
-            string newName = "";
+            string newName = "opt_";
             string newSig = "";
             List<string> lines = new List<string>();
-            List<string> funcs = new List<string>();
+            Dictionary<string,string> funcs = new Dictionary<string, string>();
             List<CLProgram> progs = new List<CLProgram>();
             int count = 0;
             foreach (SerializableFLInstruction serializableFlInstruction in targets)
@@ -107,7 +107,7 @@ namespace OpenFL.Optimizations.Checks
                 List<(string orig, string newKey)> reps = new List<(string orig, string newKey)>();
                 foreach (KeyValuePair<string, KernelParameter> kernelParameter in instr.Parameter.Skip(5))
                 {
-                    newSig += ", ";
+                    funcSig += ", ";
                     switch (kernelParameter.Value.MemScope)
                     {
                         case MemoryScope.None:
@@ -139,14 +139,25 @@ namespace OpenFL.Optimizations.Checks
                     }
                 }
 
-
-                funcs.Add(GetFunc("gen_" + instr.Name, "__global uchar* image, int3 dimensions, int channelCount, float maxValue, __global uchar* channelEnableState, " + funcSig, block));
-                string line = $"\ngen_{instr.Name}(image, dimensions, channelCount, maxValue, channelEnableState, {reps.Select(x => x.newKey).Unpack(", ")});\n";
+                string genFuncArgs = reps.Count == 0 ? "" : ", "+reps.Select(x => x.newKey).Unpack(", ");
+                if(!funcs.ContainsKey(instr.Name))
+                {
+                    funcs.Add(
+                              instr.Name,
+                              GetFunc(
+                                      "gen_" + instr.Name,
+                                      "__global uchar* image, int3 dimensions, int channelCount, float maxValue, __global uchar* channelEnableState" +
+                                      funcSig,
+                                      block
+                                     )
+                             );
+                }
+                string line = $"\ngen_{instr.Name}(image, dimensions, channelCount, maxValue, channelEnableState{genFuncArgs});\n";
                 lines.Add(line);
             }
 
             string sig = $"__kernel void {newName}(__global uchar* image, int3 dimensions, int channelCount, float maxValue, __global uchar* channelEnableState{newSig})";
-            string newk = $"{funcs.Unpack("\n\n")}\n{sig}\n" + "{" + lines.Unpack("\n") + "\n}";
+            string newk = $"{funcs.Values.Distinct().Unpack("\n\n")}\n{sig}\n" + "{" + lines.Unpack("\n") + "\n}";
 
             return (newName, newk, progs.ToArray());
 
@@ -173,6 +184,11 @@ namespace OpenFL.Optimizations.Checks
                             targetSequences.Add((start, sequence.ToArray(), args.ToArray()));
                             sequence = new List<SerializableFLInstruction>();
                             args = new List<SerializableFLInstructionArgument>();
+                        }
+                        else
+                        {
+                            sequence.Clear();
+                            args.Clear();
                         }
                         start = i + 1;
                     }
@@ -214,24 +230,30 @@ namespace OpenFL.Optimizations.Checks
             }
 
 
-            foreach ((SerializableFLFunction, int, string, SerializableFLInstructionArgument[]) targetFunction in targetFunctions)
+            for (int i = targetFunctions.Count - 1; i >= 0; i--)
             {
+                (SerializableFLFunction, int, string, SerializableFLInstructionArgument[]) targetFunction = targetFunctions[i];
                 int length = generatedTargets[targetFunction.Item3].Item2.Length;
                 int start = targetFunction.Item2;
                 targetFunction.Item1.Instructions.RemoveRange(start, length);
-                targetFunction.Item1.Instructions.Add(
-                                                      new SerializableFLInstruction(
-                                                                                    targetFunction.Item3,
-                                                                                    targetFunction.Item4.ToList()
-                                                                                   )
-                                                     );
+                targetFunction.Item1.Instructions.Insert(
+                                                         start,
+                                                         new SerializableFLInstruction(
+                                                                                       targetFunction.Item3,
+                                                                                       targetFunction.Item4.ToList()
+                                                                                      )
+                                                        );
             }
 
+            foreach (KeyValuePair<string, string> keyValuePair in generatedKernelSource)
+            {
+                input.KernelData.Add(new EmbeddedKernelData(keyValuePair.Key, keyValuePair.Value));
+            }
 
             return input;
         }
 
-        public override FLProgramCheckType CheckType => FLProgramCheckType.Disabled;
+        public override FLProgramCheckType CheckType => FLProgramCheckType.AggressiveOptimization;
 
     }
 }
