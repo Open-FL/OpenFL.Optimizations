@@ -91,7 +91,7 @@ namespace OpenFL.Optimizations.Checks
 
         private (string, string, CLProgram[]) GenerateTargets(SerializableFLInstruction[] targets)
         {
-            string newName = "opt_";
+            string newName = "opt";
             string newSig = "";
             List<string> lines = new List<string>();
             Dictionary<string,string> funcs = new Dictionary<string, string>();
