@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,6 +19,21 @@ namespace OpenFL.Optimizations.Checks
     public class KernelMergeOptimization : FLProgramCheck<SerializableFLProgram>
     {
 
+        private class ProgramComparer : EqualityComparer<CLProgram>
+        {
+
+            public override bool Equals(CLProgram x, CLProgram y)
+            {
+                return x.ClProgramHandle.Handle == y.ClProgramHandle.Handle;
+            }
+
+            public override int GetHashCode(CLProgram obj)
+            {
+                return obj.ClProgramHandle.Handle.GetHashCode();
+            }
+
+        }
+
         private string GetFunc(string name, string signature, string[] lines)
         {
             string kernelSig = $"void {name}({signature})\n";
@@ -25,17 +41,24 @@ namespace OpenFL.Optimizations.Checks
             return kernelSig + "{" + kernelBlock + "\n}";
         }
 
-        private CLProgram Merge(CLProgram progA, CLProgram progB, string src)
+        private string Merge(string src, params CLProgram[] progs)
         {
-            string[] source = $"#includeinl {progA.FilePath}\n#includeinl {progB.FilePath}\n{src}".Split('\n');
-            string content = TextProcessorAPI.PreprocessLines(source, "./", ".cl", new Dictionary<string, bool>()).Unpack("\n");
-            CLProgramBuildResult res = CLProgram.TryBuildProgram(CLAPI.MainThread, content, "", out CLProgram newP);
-            if (res)
+            string source = "";
+
+            IEnumerable<CLProgram> unique = progs.Distinct(new ProgramComparer());
+
+            foreach (CLProgram clProgram in unique)
             {
-                return newP;
+                source += $"#includeinl {clProgram.FilePath}\n";
             }
-            throw new Exception("RIP");
+
+            source += src;
+            string[] lines = source.Split('\n');
+            string content = TextProcessorAPI.PreprocessLines(lines, "./", ".cl", new Dictionary<string, bool>()).Unpack("\n");
+            return content;
         }
+
+        private bool CanBeOptimized(string name) => InstructionSet.Database.KernelNames.Contains(name);
 
         private string[] GetBlockContent(string source, string kernelName)
         {
@@ -66,22 +89,16 @@ namespace OpenFL.Optimizations.Checks
             return source.Substring(start, end - start).Pack("\n").ToArray();
         }
 
-        public override object Process(object o)
+        private (string, string, CLProgram[]) GenerateTargets(SerializableFLInstruction[] targets)
         {
-            SerializableFLProgram input = (SerializableFLProgram)o;
-            
-            IEnumerable<SerializableFLInstruction> targets = input.Functions.First(x => x.Name == "Main").Instructions.Take(2);
-
             string newName = "";
             string newSig = "";
-            List<SerializableFLInstructionArgument> newArgs = new List<SerializableFLInstructionArgument>();
             List<string> lines = new List<string>();
             List<string> funcs = new List<string>();
             List<CLProgram> progs = new List<CLProgram>();
             int count = 0;
             foreach (SerializableFLInstruction serializableFlInstruction in targets)
             {
-                newArgs.AddRange(serializableFlInstruction.Arguments);
                 CLKernel instr = InstructionSet.Database.GetClKernel(serializableFlInstruction.InstructionKey);
                 CLProgram prog = InstructionSet.Database.GetProgram(instr);
                 progs.Add(prog);
@@ -130,9 +147,86 @@ namespace OpenFL.Optimizations.Checks
 
             string sig = $"__kernel void {newName}(__global uchar* image, int3 dimensions, int channelCount, float maxValue, __global uchar* channelEnableState{newSig})";
             string newk = $"{funcs.Unpack("\n\n")}\n{sig}\n" + "{" + lines.Unpack("\n") + "\n}";
-            CLProgram newP = Merge(progs[0], progs[1], newk);
-            Console.WriteLine(newk);
-            Console.ReadLine();
+
+            return (newName, newk, progs.ToArray());
+
+        }
+
+        public override object Process(object o)
+        {
+            SerializableFLProgram input = (SerializableFLProgram)o;
+
+            Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]> funcs = new Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]>();
+
+            foreach (SerializableFLFunction serializableFlFunction in input.Functions)
+            {
+                List<(int, SerializableFLInstruction[], SerializableFLInstructionArgument[])> targetSequences = new List<(int, SerializableFLInstruction[], SerializableFLInstructionArgument[])>();
+                List<SerializableFLInstruction> sequence = new List<SerializableFLInstruction>();
+                List<SerializableFLInstructionArgument> args = new List<SerializableFLInstructionArgument>();
+                int start = 0;
+                for (int i = 0; i < serializableFlFunction.Instructions.Count; i++)
+                {
+                    if (!CanBeOptimized(serializableFlFunction.Instructions[i].InstructionKey))
+                    {
+                        if (sequence.Count > 1)
+                        {
+                            targetSequences.Add((start, sequence.ToArray(), args.ToArray()));
+                            sequence = new List<SerializableFLInstruction>();
+                            args = new List<SerializableFLInstructionArgument>();
+                        }
+                        start = i + 1;
+                    }
+                    else
+                    {
+                        sequence.Add(serializableFlFunction.Instructions[i]);
+                        args.AddRange(serializableFlFunction.Instructions[i].Arguments);
+                    }
+                }
+
+                if (sequence.Count > 1)
+                {
+                    targetSequences.Add((start, sequence.ToArray(), args.ToArray()));
+                }
+
+                if (targetSequences.Count != 0)
+                {
+                    funcs[serializableFlFunction] = targetSequences.ToArray();
+                }
+            }
+
+            List<(SerializableFLFunction, int, string, SerializableFLInstructionArgument[])> targetFunctions = new List<(SerializableFLFunction, int, string, SerializableFLInstructionArgument[])>();
+            Dictionary<string, (string, CLProgram[])> generatedTargets = new Dictionary<string, (string, CLProgram[])>();
+
+            foreach (KeyValuePair<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]> serializableFlInstructionse in funcs)
+            {
+                foreach ((int, SerializableFLInstruction[], SerializableFLInstructionArgument[]) serializableFlInstructions in serializableFlInstructionse.Value)
+                {
+                    (string, string, CLProgram[]) instr = GenerateTargets(serializableFlInstructions.Item2);
+                    if (!generatedTargets.ContainsKey(instr.Item1)) generatedTargets[instr.Item1] = (instr.Item2, instr.Item3);
+                    targetFunctions.Add((serializableFlInstructionse.Key, serializableFlInstructions.Item1, instr.Item1, serializableFlInstructions.Item3));
+                }
+            }
+
+            Dictionary<string, string> generatedKernelSource = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, (string, CLProgram[])> generatedTarget in generatedTargets)
+            {
+                generatedKernelSource[generatedTarget.Key] = Merge(generatedTarget.Value.Item1, generatedTarget.Value.Item2);
+            }
+
+
+            foreach ((SerializableFLFunction, int, string, SerializableFLInstructionArgument[]) targetFunction in targetFunctions)
+            {
+                int length = generatedTargets[targetFunction.Item3].Item2.Length;
+                int start = targetFunction.Item2;
+                targetFunction.Item1.Instructions.RemoveRange(start, length);
+                targetFunction.Item1.Instructions.Add(
+                                                      new SerializableFLInstruction(
+                                                                                    targetFunction.Item3,
+                                                                                    targetFunction.Item4.ToList()
+                                                                                   )
+                                                     );
+            }
+
 
             return input;
         }
