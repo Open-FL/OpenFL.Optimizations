@@ -11,7 +11,7 @@ namespace OpenFL.Optimizations.Checks
     public class OptimizeBufferCreation : FLProgramCheck<SerializableFLProgram>
     {
 
-        public override int Priority => 3;
+        public override int Priority => 2;
 
         public override FLProgramCheckType CheckType => FLProgramCheckType.Optimization;
 
