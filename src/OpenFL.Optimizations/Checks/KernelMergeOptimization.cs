@@ -59,7 +59,8 @@ namespace OpenFL.Optimizations.Checks
             return content;
         }
 
-        private bool CanBeOptimized(string name) => name != "rnd_gpu" && name != "urnd_gpu" && InstructionSet.Database.KernelNames.Contains(name);
+        private static string[] Blacklist = new []{"rnd_gpu", "urnd_gpu", "perlin", "worley", "smooth", "blur_x", "blur_y", "blur_z", "blur_xy", "blur_yz", "blur_xz", "blur_xyz"};
+        private bool CanBeOptimized(string name) => !Blacklist.Contains(name) && InstructionSet.Database.KernelNames.Contains(name);
 
         private string[] GetBlockContent(string source, string kernelName)
         {
