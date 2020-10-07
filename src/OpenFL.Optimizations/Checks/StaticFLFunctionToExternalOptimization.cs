@@ -37,15 +37,15 @@ namespace OpenFL.Optimizations.Checks
 
                 List<string> source = staticFunction.Instructions.Select(x => x.ToString()).ToList();
                 source.Insert(0, FLKeywords.EntryFunctionKey + ":");
-                SerializableFLProgram ext = (SerializableFLProgram) Target.Process(
-                     new FLParserInput(
-                                       "Exported Function: " +
-                                       staticFunction
-                                           .Name,
-                                       source.ToArray(),
-                                       false
-                                      )
-                    );
+                FLParserInput pi = new FLParserInput(
+                                                     "Exported Function: " +
+                                                     staticFunction
+                                                         .Name,
+                                                     source.ToArray(),
+                                                     false
+                                                    );
+                pi.KernelData = new List<EmbeddedKernelData>(input.KernelData);
+                SerializableFLProgram ext = (SerializableFLProgram) Target.Process(pi);
 
 
                 List<string> mods = new List<string> { FLKeywords.NoJumpKeyword };
