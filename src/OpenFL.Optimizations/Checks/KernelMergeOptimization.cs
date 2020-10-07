@@ -59,7 +59,7 @@ namespace OpenFL.Optimizations.Checks
             return content;
         }
 
-        private bool CanBeOptimized(string name) => InstructionSet.Database.KernelNames.Contains(name);
+        private bool CanBeOptimized(string name) => name != "rnd_gpu" && name != "urnd_gpu" && InstructionSet.Database.KernelNames.Contains(name);
 
         private string[] GetBlockContent(string source, string kernelName)
         {
@@ -95,7 +95,7 @@ namespace OpenFL.Optimizations.Checks
             string newName = "opt";
             string newSig = "";
             List<string> lines = new List<string>();
-            Dictionary<string,string> funcs = new Dictionary<string, string>();
+            Dictionary<string, string> funcs = new Dictionary<string, string>();
             List<CLProgram> progs = new List<CLProgram>();
             int count = 0;
             foreach (SerializableFLInstruction serializableFlInstruction in targets)
@@ -140,8 +140,8 @@ namespace OpenFL.Optimizations.Checks
                     }
                 }
 
-                string genFuncArgs = reps.Count == 0 ? "" : ", "+reps.Select(x => x.newKey).Unpack(", ");
-                if(!funcs.ContainsKey(instr.Name))
+                string genFuncArgs = reps.Count == 0 ? "" : ", " + reps.Select(x => x.newKey).Unpack(", ");
+                if (!funcs.ContainsKey(instr.Name))
                 {
                     funcs.Add(
                               instr.Name,
