@@ -1,1 +1,1 @@
-open-fl-optimizations|OpenFL.Optimizations.dll|https://open-fl.github.io/OpenFL.Optimizations/latest/info.txt|0.0.1.52|
+open-fl-optimizations|OpenFL.Optimizations.dll|https://open-fl.github.io/OpenFL.Optimizations/latest/info.txt|0.0.1.53|
