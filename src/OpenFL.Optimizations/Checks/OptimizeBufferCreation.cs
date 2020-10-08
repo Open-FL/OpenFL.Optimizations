@@ -11,17 +11,20 @@ namespace OpenFL.Optimizations.Checks
     public class OptimizeBufferCreation : FLProgramCheck<SerializableFLProgram>
     {
 
+        private readonly string[] InstructionBlacklist = { "jmp", "ble", "bge", "blt", "bgt" };
+
         public override int Priority => 2;
 
         public override FLProgramCheckType CheckType => FLProgramCheckType.Optimization;
 
-        private string[] InstructionBlacklist = new[] { "jmp", "ble", "bge", "blt", "bgt" };
-
         public override object Process(object o)
         {
-            if (!InstructionSet.HasInstruction("Set_v")) return o;
+            if (!InstructionSet.HasInstruction("Set_v"))
+            {
+                return o;
+            }
 
-            SerializableFLProgram input = (SerializableFLProgram)o;
+            SerializableFLProgram input = (SerializableFLProgram) o;
 
 
             List<SerializableFLFunction> optimizableFunctions = new List<SerializableFLFunction>();
@@ -33,7 +36,7 @@ namespace OpenFL.Optimizations.Checks
                 {
                     foreach (SerializableFLInstruction instruction in func.Instructions)
                     {
-                        if(InstructionBlacklist.Contains(instruction.InstructionKey))
+                        if (InstructionBlacklist.Contains(instruction.InstructionKey))
                         {
                             foreach (SerializableFLInstructionArgument argument in instruction.Arguments)
                             {
@@ -44,16 +47,25 @@ namespace OpenFL.Optimizations.Checks
                                 }
                             }
 
-                            if (isUsed) break;
+                            if (isUsed)
+                            {
+                                break;
+                            }
                         }
                     }
-                    if (isUsed) break;
+
+                    if (isUsed)
+                    {
+                        break;
+                    }
                 }
+
                 if (!isUsed)
                 {
                     optimizableFunctions.Add(function);
                 }
             }
+
             //optimizableFunctions = input.Functions.Where(
             //                                             x => input.Functions.SelectMany(y => y.Instructions)
             //                                                       .All(
@@ -66,7 +78,6 @@ namespace OpenFL.Optimizations.Checks
             //                                                                                )
             //                                                           )
             //                                            );
-
 
 
             foreach (SerializableFLFunction func in optimizableFunctions)

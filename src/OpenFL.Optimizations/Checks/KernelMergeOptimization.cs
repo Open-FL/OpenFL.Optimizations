@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,32 +7,34 @@ using OpenCL.Wrapper.TypeEnums;
 
 using OpenFL.Core.DataObjects.SerializableDataObjects;
 using OpenFL.Core.ProgramChecks;
-using OpenFL.Parsing;
 
 using Utility.ExtPP.API;
-using Utility.ExtPP.Base;
 using Utility.FastString;
 
 namespace OpenFL.Optimizations.Checks
 {
     public class KernelMergeOptimization : FLProgramCheck<SerializableFLProgram>
     {
+
+        private static readonly string[] Blacklist =
+        {
+            "rnd_gpu",
+            "urnd_gpu",
+            "perlin",
+            "worley",
+            "smooth",
+            "blur_x",
+            "blur_y",
+            "blur_z",
+            "blur_xy",
+            "blur_yz",
+            "blur_xz",
+            "blur_xyz"
+        };
+
         public override int Priority => 3;
 
-        private class ProgramComparer : EqualityComparer<CLProgram>
-        {
-
-            public override bool Equals(CLProgram x, CLProgram y)
-            {
-                return x.ClProgramHandle.Handle == y.ClProgramHandle.Handle;
-            }
-
-            public override int GetHashCode(CLProgram obj)
-            {
-                return obj.ClProgramHandle.Handle.GetHashCode();
-            }
-
-        }
+        public override FLProgramCheckType CheckType => FLProgramCheckType.AggressiveOptimization;
 
         private string GetFunc(string name, string signature, string[] lines)
         {
@@ -55,12 +56,15 @@ namespace OpenFL.Optimizations.Checks
 
             source += src;
             string[] lines = source.Split('\n');
-            string content = TextProcessorAPI.PreprocessLines(lines, "./", ".cl", new Dictionary<string, bool>()).Unpack("\n");
+            string content = TextProcessorAPI.PreprocessLines(lines, "./", ".cl", new Dictionary<string, bool>())
+                                             .Unpack("\n");
             return content;
         }
 
-        private static string[] Blacklist = new []{"rnd_gpu", "urnd_gpu", "perlin", "worley", "smooth", "blur_x", "blur_y", "blur_z", "blur_xy", "blur_yz", "blur_xz", "blur_xyz"};
-        private bool CanBeOptimized(string name) => !Blacklist.Contains(name) && InstructionSet.Database.KernelNames.Contains(name);
+        private bool CanBeOptimized(string name)
+        {
+            return !Blacklist.Contains(name) && InstructionSet.Database.KernelNames.Contains(name);
+        }
 
         private string[] GetBlockContent(string source, string kernelName)
         {
@@ -73,7 +77,11 @@ namespace OpenFL.Optimizations.Checks
             int end = -1;
             for (int i = start; i < source.Length; i++)
             {
-                if (source[i] == '{') current++;
+                if (source[i] == '{')
+                {
+                    current++;
+                }
+
                 if (source[i] == '}')
                 {
                     if (current == 0)
@@ -81,10 +89,8 @@ namespace OpenFL.Optimizations.Checks
                         end = i - 1;
                         break;
                     }
-                    else
-                    {
-                        current--;
-                    }
+
+                    current--;
                 }
             }
 
@@ -131,6 +137,7 @@ namespace OpenFL.Optimizations.Checks
 
                     count++;
                 }
+
                 newSig += funcSig;
                 string[] block = GetBlockContent(prog.Source, instr.Name);
                 foreach ((string orig, string newKey) valueTuple in reps)
@@ -154,26 +161,32 @@ namespace OpenFL.Optimizations.Checks
                                      )
                              );
                 }
-                string line = $"\ngen_{instr.Name}(image, dimensions, channelCount, maxValue, channelEnableState{genFuncArgs});\n";
+
+                string line =
+                    $"\ngen_{instr.Name}(image, dimensions, channelCount, maxValue, channelEnableState{genFuncArgs});\n";
                 lines.Add(line);
             }
 
-            string sig = $"__kernel void {newName}(__global uchar* image, int3 dimensions, int channelCount, float maxValue, __global uchar* channelEnableState{newSig})";
+            string sig =
+                $"__kernel void {newName}(__global uchar* image, int3 dimensions, int channelCount, float maxValue, __global uchar* channelEnableState{newSig})";
             string newk = $"{funcs.Values.Distinct().Unpack("\n\n")}\n{sig}\n" + "{" + lines.Unpack("\n") + "\n}";
 
             return (newName, newk, progs.ToArray());
-
         }
 
         public override object Process(object o)
         {
-            SerializableFLProgram input = (SerializableFLProgram)o;
+            SerializableFLProgram input = (SerializableFLProgram) o;
 
-            Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]> funcs = new Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]>();
+            Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]
+            > funcs =
+                new Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[],
+                    SerializableFLInstructionArgument[])[]>();
 
             foreach (SerializableFLFunction serializableFlFunction in input.Functions)
             {
-                List<(int, SerializableFLInstruction[], SerializableFLInstructionArgument[])> targetSequences = new List<(int, SerializableFLInstruction[], SerializableFLInstructionArgument[])>();
+                List<(int, SerializableFLInstruction[], SerializableFLInstructionArgument[])> targetSequences =
+                    new List<(int, SerializableFLInstruction[], SerializableFLInstructionArgument[])>();
                 List<SerializableFLInstruction> sequence = new List<SerializableFLInstruction>();
                 List<SerializableFLInstructionArgument> args = new List<SerializableFLInstructionArgument>();
                 int start = 0;
@@ -192,6 +205,7 @@ namespace OpenFL.Optimizations.Checks
                             sequence.Clear();
                             args.Clear();
                         }
+
                         start = i + 1;
                     }
                     else
@@ -212,38 +226,51 @@ namespace OpenFL.Optimizations.Checks
                 }
             }
 
-            List<(SerializableFLFunction, int, string, SerializableFLInstructionArgument[])> targetFunctions = new List<(SerializableFLFunction, int, string, SerializableFLInstructionArgument[])>();
-            Dictionary<string, (string, CLProgram[])> generatedTargets = new Dictionary<string, (string, CLProgram[])>();
+            List<(SerializableFLFunction, int, string, SerializableFLInstructionArgument[])> targetFunctions =
+                new List<(SerializableFLFunction, int, string, SerializableFLInstructionArgument[])>();
+            Dictionary<string, (string, CLProgram[])>
+                generatedTargets = new Dictionary<string, (string, CLProgram[])>();
 
-            foreach (KeyValuePair<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]> serializableFlInstructionse in funcs)
+            foreach (KeyValuePair<SerializableFLFunction, (int, SerializableFLInstruction[],
+                         SerializableFLInstructionArgument[])[]> serializableFlInstructionse in funcs)
             {
-                foreach ((int, SerializableFLInstruction[], SerializableFLInstructionArgument[]) serializableFlInstructions in serializableFlInstructionse.Value)
+                foreach ((int, SerializableFLInstruction[], SerializableFLInstructionArgument[])
+                         serializableFlInstructions in serializableFlInstructionse.Value)
                 {
                     (string, string, CLProgram[]) instr = GenerateTargets(serializableFlInstructions.Item2);
-                    if (!generatedTargets.ContainsKey(instr.Item1)) generatedTargets[instr.Item1] = (instr.Item2, instr.Item3);
-                    targetFunctions.Add((serializableFlInstructionse.Key, serializableFlInstructions.Item1, instr.Item1, serializableFlInstructions.Item3));
+                    if (!generatedTargets.ContainsKey(instr.Item1))
+                    {
+                        generatedTargets[instr.Item1] = (instr.Item2, instr.Item3);
+                    }
+
+                    targetFunctions.Add(
+                                        (serializableFlInstructionse.Key, serializableFlInstructions.Item1, instr.Item1,
+                                         serializableFlInstructions.Item3)
+                                       );
                 }
             }
 
             Dictionary<string, string> generatedKernelSource = new Dictionary<string, string>();
             foreach (KeyValuePair<string, (string, CLProgram[])> generatedTarget in generatedTargets)
             {
-                generatedKernelSource[generatedTarget.Key] = Merge(generatedTarget.Value.Item1, generatedTarget.Value.Item2);
+                generatedKernelSource[generatedTarget.Key] =
+                    Merge(generatedTarget.Value.Item1, generatedTarget.Value.Item2);
             }
 
 
             for (int i = targetFunctions.Count - 1; i >= 0; i--)
             {
-                (SerializableFLFunction, int, string, SerializableFLInstructionArgument[]) targetFunction = targetFunctions[i];
+                (SerializableFLFunction, int, string, SerializableFLInstructionArgument[]) targetFunction =
+                    targetFunctions[i];
                 int length = generatedTargets[targetFunction.Item3].Item2.Length;
                 int start = targetFunction.Item2;
                 targetFunction.Item1.Instructions.RemoveRange(start, length);
                 targetFunction.Item1.Instructions.Insert(
                                                          start,
                                                          new SerializableFLInstruction(
-                                                                                       targetFunction.Item3,
-                                                                                       targetFunction.Item4.ToList()
-                                                                                      )
+                                                              targetFunction.Item3,
+                                                              targetFunction.Item4.ToList()
+                                                             )
                                                         );
             }
 
@@ -255,7 +282,20 @@ namespace OpenFL.Optimizations.Checks
             return input;
         }
 
-        public override FLProgramCheckType CheckType => FLProgramCheckType.AggressiveOptimization;
+        private class ProgramComparer : EqualityComparer<CLProgram>
+        {
+
+            public override bool Equals(CLProgram x, CLProgram y)
+            {
+                return x.ClProgramHandle.Handle == y.ClProgramHandle.Handle;
+            }
+
+            public override int GetHashCode(CLProgram obj)
+            {
+                return obj.ClProgramHandle.Handle.GetHashCode();
+            }
+
+        }
 
     }
 }
