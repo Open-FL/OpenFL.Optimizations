@@ -144,7 +144,12 @@ namespace OpenFL.Optimizations.Checks
                 {
                     for (int i = 0; i < block.Length; i++)
                     {
+                        List<int> indices = new List<int>();
+
                         block[i] = block[i].Replace(' ' + valueTuple.orig + ' ', ' ' + valueTuple.newKey + ' ');
+                        block[i] = block[i].Replace(',' + valueTuple.orig + ' ', ',' + valueTuple.newKey + ' ');
+                        block[i] = block[i].Replace(',' + valueTuple.orig + ',', ',' + valueTuple.newKey + ',');
+                        block[i] = block[i].Replace(',' + valueTuple.orig + ' ', ',' + valueTuple.newKey + ' ');
                     }
                 }
 
