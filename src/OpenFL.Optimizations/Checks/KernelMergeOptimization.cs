@@ -144,7 +144,7 @@ namespace OpenFL.Optimizations.Checks
                 {
                     for (int i = 0; i < block.Length; i++)
                     {
-                        block[i] = block[i].Replace(valueTuple.orig, valueTuple.newKey);
+                        block[i] = block[i].Replace(' ' + valueTuple.orig + ' ', ' ' + valueTuple.newKey + ' ');
                     }
                 }
 
@@ -176,7 +176,7 @@ namespace OpenFL.Optimizations.Checks
 
         public override object Process(object o)
         {
-            SerializableFLProgram input = (SerializableFLProgram) o;
+            SerializableFLProgram input = (SerializableFLProgram)o;
 
             Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]
             > funcs =
