@@ -16,7 +16,7 @@ namespace OpenFL.Optimizations.Checks
     public class KernelMergeOptimization : FLProgramCheck<SerializableFLProgram>
     {
 
-        private static readonly char[] SpecialChars = new[] { ' ', ',' , '(', ')', '+', '-', '*', '/', ';', '^' };
+        private static readonly char[] SpecialChars = new[] { ' ', ',' , '(', ')', '+', '-', '*', '/', ';', '^','[', ']', '{', '}' };
 
         private static readonly string[] Blacklist =
         {
