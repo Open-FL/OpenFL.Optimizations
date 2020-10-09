@@ -16,7 +16,7 @@ namespace OpenFL.Optimizations.Checks
     public class KernelMergeOptimization : FLProgramCheck<SerializableFLProgram>
     {
 
-        private static readonly char[] SpecialChars = new[] { ' ', ',' , '(', ')', '+', '-', '*', '/', ';', '^','[', ']', '{', '}' };
+        private static readonly char[] SpecialChars = new[] { ' ', ',', '(', ')', '+', '-', '*', '/', ';', '^', '[', ']', '{', '}' };
 
         private static readonly string[] Blacklist =
         {
@@ -149,7 +149,7 @@ namespace OpenFL.Optimizations.Checks
                         int current = block[i].IndexOf(valueTuple.orig, StringComparison.Ordinal);
                         while (current != -1)
                         {
-                            if (CheckBack(block[i], current + valueTuple.orig.Length) &&
+                            if (CheckBack(block[i], current + valueTuple.orig.Length - 1) &&
                                 CheckFront(block[i], current))
                             {
                                 block[i] = block[i].Remove(current, valueTuple.orig.Length).Insert(current, valueTuple.newKey);
