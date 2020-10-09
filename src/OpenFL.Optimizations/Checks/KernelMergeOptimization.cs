@@ -16,6 +16,8 @@ namespace OpenFL.Optimizations.Checks
     public class KernelMergeOptimization : FLProgramCheck<SerializableFLProgram>
     {
 
+        private static readonly char[] SpecialChars = new[] { ' ', ',' , '(', ')', '+', '-', '*', '/', ';', '^' };
+
         private static readonly string[] Blacklist =
         {
             "rnd_gpu",
@@ -144,12 +146,17 @@ namespace OpenFL.Optimizations.Checks
                 {
                     for (int i = 0; i < block.Length; i++)
                     {
-                        List<int> indices = new List<int>();
+                        int current = block[i].IndexOf(valueTuple.orig, StringComparison.Ordinal);
+                        while (current != -1)
+                        {
+                            if (CheckBack(block[i], current + valueTuple.orig.Length) &&
+                                CheckFront(block[i], current))
+                            {
+                                block[i] = block[i].Remove(current, valueTuple.orig.Length).Insert(current, valueTuple.newKey);
+                            }
 
-                        block[i] = block[i].Replace(' ' + valueTuple.orig + ' ', ' ' + valueTuple.newKey + ' ');
-                        block[i] = block[i].Replace(',' + valueTuple.orig + ' ', ',' + valueTuple.newKey + ' ');
-                        block[i] = block[i].Replace(',' + valueTuple.orig + ',', ',' + valueTuple.newKey + ',');
-                        block[i] = block[i].Replace(',' + valueTuple.orig + ' ', ',' + valueTuple.newKey + ' ');
+                            current = block[i].IndexOf(valueTuple.orig, current + valueTuple.orig.Length, StringComparison.Ordinal);
+                        }
                     }
                 }
 
@@ -177,6 +184,25 @@ namespace OpenFL.Optimizations.Checks
             string newk = $"{funcs.Values.Distinct().Unpack("\n\n")}\n{sig}\n" + "{" + lines.Unpack("\n") + "\n}";
 
             return (newName, newk, progs.ToArray());
+        }
+
+        private bool CheckFront(string content, int start)
+        {
+            if (start == 0) return true;
+
+            return IsSpecialChar(content[start - 1]);
+        }
+
+        private bool CheckBack(string content, int end)
+        {
+            if (end == content.Length - 1) return true;
+
+            return IsSpecialChar(content[end + 1]);
+        }
+
+        private bool IsSpecialChar(char c)
+        {
+            return SpecialChars.Contains(c);
         }
 
         public override object Process(object o)
