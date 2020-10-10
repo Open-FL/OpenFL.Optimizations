@@ -16,7 +16,10 @@ namespace OpenFL.Optimizations.Checks
     public class KernelMergeOptimization : FLProgramCheck<SerializableFLProgram>
     {
 
-        private static readonly char[] SpecialChars = new[] { ' ', ',', '(', ')', '+', '-', '*', '/', ';', '^', '[', ']', '{', '}' };
+        private static readonly char[] SpecialChars =
+        {
+            ' ', ',', '(', ')', '+', '-', '*', '/', ';', '^', '[', ']', '{', '}'
+        };
 
         private static readonly string[] Blacklist =
         {
@@ -152,10 +155,15 @@ namespace OpenFL.Optimizations.Checks
                             if (CheckBack(block[i], current + valueTuple.orig.Length - 1) &&
                                 CheckFront(block[i], current))
                             {
-                                block[i] = block[i].Remove(current, valueTuple.orig.Length).Insert(current, valueTuple.newKey);
+                                block[i] = block[i].Remove(current, valueTuple.orig.Length)
+                                                   .Insert(current, valueTuple.newKey);
                             }
 
-                            current = block[i].IndexOf(valueTuple.orig, current + valueTuple.orig.Length, StringComparison.Ordinal);
+                            current = block[i].IndexOf(
+                                                       valueTuple.orig,
+                                                       current + valueTuple.orig.Length,
+                                                       StringComparison.Ordinal
+                                                      );
                         }
                     }
                 }
@@ -188,14 +196,20 @@ namespace OpenFL.Optimizations.Checks
 
         private bool CheckFront(string content, int start)
         {
-            if (start == 0) return true;
+            if (start == 0)
+            {
+                return true;
+            }
 
             return IsSpecialChar(content[start - 1]);
         }
 
         private bool CheckBack(string content, int end)
         {
-            if (end == content.Length - 1) return true;
+            if (end == content.Length - 1)
+            {
+                return true;
+            }
 
             return IsSpecialChar(content[end + 1]);
         }
@@ -207,7 +221,7 @@ namespace OpenFL.Optimizations.Checks
 
         public override object Process(object o)
         {
-            SerializableFLProgram input = (SerializableFLProgram)o;
+            SerializableFLProgram input = (SerializableFLProgram) o;
 
             Dictionary<SerializableFLFunction, (int, SerializableFLInstruction[], SerializableFLInstructionArgument[])[]
             > funcs =
